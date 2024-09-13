@@ -29,7 +29,7 @@ async function main() {
 
     
     await USDC_Contract.approve(ROUTER_ADDRESS, AmoutUsdcDesired);
-    await DAI_Contract.approve(ROUTER_ADDRESS, AmountDaiDesired); // Correcting the approval for DAI
+    await DAI_Contract.approve(ROUTER_ADDRESS, AmountDaiDesired); 
 
     
     const usdcBalBefore = await USDC_Contract.balanceOf(impersonatedSigner.address);
