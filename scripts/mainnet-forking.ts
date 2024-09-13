@@ -36,13 +36,8 @@ async function main() {
         deadline
     );
 
-    const usdcBalAfter = await USDC_Contract.balanceOf(impersonatedSigner.address);
-    const daiBalAfter = await DAI_Contract.balanceOf(impersonatedSigner.address);
+    
 
-    console.log("=========================================================");
-
-    console.log("usdc balance after swap", Number(usdcBalAfter));
-    console.log("dai balance after swap", Number(daiBalAfter));
 }
 
 // We recommend this pattern to be able to use async/await everywhere
