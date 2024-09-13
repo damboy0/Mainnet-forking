@@ -1,7 +1,6 @@
 import { ethers } from "hardhat";
 const helpers = require("@nomicfoundation/hardhat-network-helpers");
 
-
 async function main() {
 
     const ROUTER_ADDRESS = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
@@ -10,38 +9,39 @@ async function main() {
 
     const TOKEN_HOLDER = "0xf584F8728B874a6a5c7A8d4d387C9aae9172D621";
 
+    // Impersonate the account
     await helpers.impersonateAccount(TOKEN_HOLDER);
     const impersonatedSigner = await ethers.getSigner(TOKEN_HOLDER);
 
-    const USDC_Contract = await ethers.getContractAt("IERC20", USDC, impersonatedSigner);
-    const DAI_Contract = await ethers.getContractAt("IERC20", DAI); 
+    // Set balance for the impersonated account
+    const ethAmount = ethers.parseEther("10"); // 10 ETH for gas fees
+    await helpers.setBalance(TOKEN_HOLDER, ethAmount);
 
+    // Get contract instances
+    const USDC_Contract = await ethers.getContractAt("IERC20", USDC, impersonatedSigner);
+    const DAI_Contract = await ethers.getContractAt("IERC20", DAI, impersonatedSigner); 
     const ROUTER = await ethers.getContractAt("IUniswapV2Router", ROUTER_ADDRESS, impersonatedSigner);
 
     const AmoutUsdcDesired = ethers.parseUnits("100", 6); // 100USDC
     const AmountDaiDesired = ethers.parseUnits("100", 18); // 100DAI
-
     const AmountUsdcMin = ethers.parseUnits("80", 6); // 80USDC
     const AmountDaiMin = ethers.parseUnits("80", 18); // 80DAI
 
+    // Approve USDC and DAI
+    await USDC_Contract.approve(ROUTER_ADDRESS, AmoutUsdcDesired);
+    await DAI_Contract.approve(ROUTER_ADDRESS, AmountDaiDesired); // Correcting the approval for DAI
 
-    await USDC_Contract.approve(ROUTER_ADDRESS,AmoutUsdcDesired);
-    await USDC_Contract.approve(ROUTER_ADDRESS,AmountDaiDesired);
-
+    // Check balances before adding liquidity
     const usdcBalBefore = await USDC_Contract.balanceOf(impersonatedSigner.address);
     const daiBalBefore = await DAI_Contract.balanceOf(impersonatedSigner.address);
 
+    const deadline = Math.floor(Date.now() / 1000) + (60 * 20); // 20 mins
 
-  const deadline = Math.floor(Date.now() / 1000) + (60 * 20);//20mins
+    console.log("=========================================================");
+    console.log("USDC balance before adding liquidity:", ethers.formatUnits(usdcBalBefore, 6));
+    console.log("DAI balance before adding liquidity:", ethers.formatUnits(daiBalBefore, 18));
 
-
-  console.log("=========================================================");
-
-
-  console.log("USDC balance before adding liquidity:", ethers.formatUnits(usdcBalBefore, 6));
-  console.log("DAI balance before adding liquidity:", ethers.formatUnits(daiBalBefore, 18));
-
-
+    // Add liquidity
     await ROUTER.addLiquidity(
         USDC,
         DAI,
@@ -51,27 +51,16 @@ async function main() {
         AmountDaiMin,
         impersonatedSigner.address,
         deadline
-      );
+    );
 
-
+    // Check balances after adding liquidity
     const usdcBalAfter = await USDC_Contract.balanceOf(impersonatedSigner.address);
     const daiBalAfter = await DAI_Contract.balanceOf(impersonatedSigner.address);
 
-
     console.log("=========================================================");
-
-    console.log("=========================================================");
-
-    console.log("usdc balance after swap", Number(usdcBalAfter));
-    console.log("dai balance after swap", Number(daiBalAfter));
-
-
     console.log("USDC balance after adding liquidity:", ethers.formatUnits(usdcBalAfter, 6));
     console.log("DAI balance after adding liquidity:", ethers.formatUnits(daiBalAfter, 18));
-
-
 }
-
 
 main().catch((error) => {
     console.error(error);
