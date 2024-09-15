@@ -14,7 +14,7 @@ async function main() {
     const impersonatedSigner = await ethers.getSigner(TOKEN_HOLDER);
 
     
-    const ethAmount = ethers.parseEther("10"); // 10 ETH for gas fees
+    const ethAmount = ethers.parseEther("10"); // 10 ETH for gas fees 
     await helpers.setBalance(TOKEN_HOLDER, ethAmount);
 
     
